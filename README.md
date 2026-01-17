@@ -1,2 +1,2 @@
-# synttestapp
+# synktestapp
 test
