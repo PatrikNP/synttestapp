@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sync Test App 🔄</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .container {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+        }
+
+        .status {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status.connected {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status.disconnected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .counter-box {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .counter-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .counter-value {
+            font-size: 4rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn {
+            padding: 1rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-plus {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-minus {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .btn-reset {
+            background: #f3f4f6;
+            color: #374151;
+            grid-column: span 2;
+        }
+
+        .info-box {
+            background: #dbeafe;
+            border: 2px solid #93c5fd;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-size: 0.875rem;
+            color: #1e40af;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .device-id {
+            font-family: monospace;
+            background: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            display: inline-block;
+            margin-top: 0.5rem;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .syncing {
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sync Test App 🔄</h1>
+        <p class="subtitle">Testa realtidssynkronisering mellan enheter</p>
+
+        <div class="status disconnected" id="status">
+            <span>⚠️</span>
+            <span>Konfiguration saknas</span>
+        </div>
+
+        <div class="counter-box">
+            <div class="counter-label">Delad räknare</div>
+            <div class="counter-value" id="counter">0</div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn btn-plus" onclick="increment()">+1</button>
+            <button class="btn btn-minus" onclick="decrement()">-1</button>
+            <button class="btn btn-reset" onclick="reset()">🔄 Nollställ</button>
+        </div>
+
+        <div class="info-box">
+            <strong>💡 Så här testar du:</strong>
+            1. Öppna denna sida på flera enheter (mobil, dator, tablet)<br>
+            2. Tryck på + eller - på en enhet<br>
+            3. Se hur räknaren uppdateras DIREKT på alla enheter!<br>
+            <div class="device-id">Enhet: <span id="deviceId">Laddar...</span></div>
+        </div>
+
+        <div style="margin-top: 1.5rem; padding: 1rem; background: #fef3c7; border-radius: 0.5rem; font-size: 0.875rem;">
+            <strong style="color: #92400e;">⚙️ Setup krävs:</strong><br>
+            <span style="color: #78350f;">
+                För att denna app ska fungera behöver du lägga till Firebase-konfiguration. 
+                Se instruktionerna nedan!
+            </span>
+        </div>
+    </div>
+
+    <script type="module">
+        // Detta är en DEMO - du behöver lägga till din egen Firebase-konfiguration här
+        
+        // INSTRUKTIONER FÖR ATT AKTIVERA:
+        // 1. Gå till https://console.firebase.google.com
+        // 2. Skapa ett nytt projekt (gratis)
+        // 3. Aktivera "Realtime Database" 
+        // 4. Ställ in regler till test mode (temporärt):
+        //    {
+        //      "rules": {
+        //        ".read": true,
+        //        ".write": true
+        //      }
+        //    }
+        // 5. Kopiera din Firebase config och klistra in nedan
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCZjOBDcyyLMQZDeQPKK0bpdRSh3prLs0M",
+            authDomain: "patrikapps-cd169.firebaseapp.com",
+            databaseURL: "https://patrikapps-cd169-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "patrikapps-cd169",
+            storageBucket: "patrikapps-cd169.firebasestorage.app",
+            messagingSenderId: "334803684499",
+            appId: "1:334803684499:web:13c0f00c357ad5c97ed166"
+        };
+
+        // Generera unikt device ID
+        let deviceId = localStorage.getItem('deviceId');
+        if (!deviceId) {
+            deviceId = 'device_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('deviceId', deviceId);
+        }
+        document.getElementById('deviceId').textContent = deviceId;
+
+        let counter = 0;
+        let db = null;
+        let counterRef = null;
+
+        // Försök ansluta till Firebase (fungerar bara om config är ifylld)
+        try {
+            if (firebaseConfig.apiKey) {
+                // Ladda Firebase från CDN
+                import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js').then(({ initializeApp }) => {
+                    import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js').then(({ getDatabase, ref, onValue, set }) => {
+                        const app = initializeApp(firebaseConfig);
+                        db = getDatabase(app);
+                        counterRef = ref(db, 'counter');
+
+                        // Lyssna på ändringar
+                        onValue(counterRef, (snapshot) => {
+                            counter = snapshot.val() || 0;
+                            document.getElementById('counter').textContent = counter;
+                            document.getElementById('counter').classList.add('syncing');
+                            setTimeout(() => {
+                                document.getElementById('counter').classList.remove('syncing');
+                            }, 300);
+                        });
+
+                        // Uppdatera status
+                        document.getElementById('status').className = 'status connected';
+                        document.getElementById('status').innerHTML = '<span>✅</span><span>Ansluten och synkar!</span>';
+                    });
+                });
+            } else {
+                throw new Error('Firebase config saknas');
+            }
+        } catch (e) {
+            // Fallback till localStorage om Firebase inte är konfigurerat
+            console.log('Firebase inte konfigurerat, använder localStorage');
+            counter = parseInt(localStorage.getItem('counter') || '0');
+            document.getElementById('counter').textContent = counter;
+            
+            document.getElementById('status').innerHTML = '<span>⚠️</span><span>Offline läge (endast denna enhet)</span>';
+        }
+
+        window.increment = async function() {
+            counter++;
+            await updateCounter();
+        }
+
+        window.decrement = async function() {
+            counter--;
+            await updateCounter();
+        }
+
+        window.reset = async function() {
+            if (confirm('Nollställ räknaren?')) {
+                counter = 0;
+                await updateCounter();
+            }
+        }
+
+        async function updateCounter() {
+            // Om Firebase är konfigurerat
+            if (counterRef) {
+                const { set } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
+                await set(counterRef, counter);
+            } else {
+                // Fallback till localStorage
+                localStorage.setItem('counter', counter);
+                document.getElementById('counter').textContent = counter;
+            }
+        }
+    </script>
+</body>
+</html>
